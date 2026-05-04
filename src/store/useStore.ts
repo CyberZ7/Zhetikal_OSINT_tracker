@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useRef } from 'react';
 import {
   useNodesState,
   useEdgesState,
@@ -48,6 +48,10 @@ export function useStore() {
   const [nodes, setNodes, onNodesChange] = useNodesState<EntityNode>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
+  // Tracks whether the current nodes/edges came from a switchCase load.
+  // While true, the write-back effect is suppressed to avoid overwriting loaded data.
+  const switchingRef = useRef(false);
+
   const activeCase = cases.find((c) => c.id === activeCaseId) ?? null;
 
   useEffect(() => {
@@ -58,8 +62,14 @@ export function useStore() {
     saveActiveCaseId(activeCaseId);
   }, [activeCaseId]);
 
+  // Write-back: persist current nodes/edges into the active case.
+  // Suppressed for one tick after a switchCase to avoid race condition.
   useEffect(() => {
     if (!activeCaseId) return;
+    if (switchingRef.current) {
+      switchingRef.current = false;
+      return;
+    }
     setCases((prev) =>
       prev.map((c) =>
         c.id === activeCaseId
@@ -68,6 +78,20 @@ export function useStore() {
       )
     );
   }, [nodes, edges, activeCaseId]);
+
+  // On mount: load the active case's nodes/edges if there is one
+  useEffect(() => {
+    if (!activeCaseId) return;
+    const stored = loadCases();
+    const target = stored.find((c) => c.id === activeCaseId);
+    if (target) {
+      switchingRef.current = true;
+      setNodes(target.nodes);
+      setEdges(target.edges);
+    }
+    // Only run on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const updateCaseNotes = useCallback(
     (notes: string) => {
@@ -93,6 +117,17 @@ export function useStore() {
     [activeCaseId]
   );
 
+  const updateCase = useCallback(
+    (caseId: string, name: string, description: string) => {
+      setCases((prev) =>
+        prev.map((c) =>
+          c.id === caseId ? { ...c, name, description, updatedAt: new Date().toISOString() } : c
+        )
+      );
+    },
+    []
+  );
+
   const createCase = useCallback((name: string, description: string = '') => {
     const newCase: CaseData = {
       id: generateId(),
@@ -112,6 +147,7 @@ export function useStore() {
       setCases((currentCases) => {
         const target = currentCases.find((c) => c.id === caseId);
         if (target) {
+          switchingRef.current = true;
           setNodes(target.nodes);
           setEdges(target.edges);
           setActiveCaseId(caseId);
@@ -122,6 +158,12 @@ export function useStore() {
     [setNodes, setEdges]
   );
 
+  const closeCase = useCallback(() => {
+    setActiveCaseId(null);
+    setNodes([]);
+    setEdges([]);
+  }, [setNodes, setEdges]);
+
   const deleteCase = useCallback(
     (caseId: string) => {
       setCases((prev) => {
@@ -129,6 +171,7 @@ export function useStore() {
         if (activeCaseId === caseId) {
           if (remaining.length > 0) {
             const target = remaining[0];
+            switchingRef.current = true;
             setNodes(target.nodes);
             setEdges(target.edges);
             setActiveCaseId(target.id);
@@ -211,7 +254,6 @@ export function useStore() {
     [setEdges]
   );
 
-  // Export current case as JSON file (Save Progress)
   const saveProgress = useCallback(() => {
     if (!activeCase) return;
     const snapshot: CaseData = {
@@ -244,7 +286,6 @@ export function useStore() {
     (jsonString: string) => {
       try {
         const data: CaseData = JSON.parse(jsonString);
-        // If a case with the same name exists, update it; otherwise create new
         const existing = cases.find((c) => c.name === data.name);
         if (existing) {
           setCases((prev) =>
@@ -254,6 +295,7 @@ export function useStore() {
                 : c
             )
           );
+          switchingRef.current = true;
           setNodes(data.nodes);
           setEdges(data.edges);
           setActiveCaseId(existing.id);
@@ -261,6 +303,7 @@ export function useStore() {
           const newId = generateId();
           const imported: CaseData = { ...data, id: newId, updatedAt: new Date().toISOString() };
           setCases((prev) => [...prev, imported]);
+          switchingRef.current = true;
           setNodes(imported.nodes);
           setEdges(imported.edges);
           setActiveCaseId(newId);
@@ -282,7 +325,9 @@ export function useStore() {
     onEdgesChange,
     createCase,
     switchCase,
+    closeCase,
     deleteCase,
+    updateCase,
     addEntity,
     updateNodeData,
     onConnect,

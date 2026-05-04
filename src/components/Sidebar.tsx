@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import {
-  Plus, FolderOpen, Trash2, Download, Upload, ChevronDown,
-  ChevronRight, Search, X, FileText, Image, Save,
+  Plus, FolderOpen, FolderX, Trash2, Download, Upload, ChevronDown,
+  ChevronRight, Search, X, FileText, Image, Save, Pencil, Check,
 } from 'lucide-react';
 import type { CaseData, EntityType } from '../types';
 import { ENTITY_COLORS, ENTITY_LABELS } from '../types';
@@ -11,7 +11,9 @@ interface SidebarProps {
   activeCaseId: string | null;
   onCreateCase: (name: string, description: string) => string;
   onSwitchCase: (id: string) => void;
+  onCloseCase: () => void;
   onDeleteCase: (id: string) => void;
+  onUpdateCase: (id: string, name: string, description: string) => void;
   onAddEntity: (type: EntityType, label: string) => void;
   onSaveProgress: () => void;
   onExport: () => void;
@@ -27,7 +29,9 @@ export default function Sidebar({
   activeCaseId,
   onCreateCase,
   onSwitchCase,
+  onCloseCase,
   onDeleteCase,
+  onUpdateCase,
   onAddEntity,
   onSaveProgress,
   onExport,
@@ -44,6 +48,9 @@ export default function Sidebar({
   const [entityLabel, setEntityLabel] = useState('');
   const [typeSearch, setTypeSearch] = useState('');
   const [selectedType, setSelectedType] = useState<EntityType>('ip');
+  const [editingCaseId, setEditingCaseId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editDesc, setEditDesc] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filteredTypes = ENTITY_TYPES.filter((t) =>
@@ -74,21 +81,31 @@ export default function Sidebar({
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = (ev) => {
-        const text = ev.target?.result as string;
-        onImport(text);
-      };
+      reader.onload = (ev) => onImport(ev.target?.result as string);
       reader.readAsText(file);
     };
     input.click();
   };
 
+  const startEdit = (c: CaseData, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingCaseId(c.id);
+    setEditName(c.name);
+    setEditDesc(c.description || '');
+  };
+
+  const commitEdit = () => {
+    if (!editingCaseId || !editName.trim()) return;
+    onUpdateCase(editingCaseId, editName.trim(), editDesc.trim());
+    setEditingCaseId(null);
+  };
+
   return (
     <div
-      className="h-full flex flex-col border-r border-cyber-border bg-cyber-dark transition-all duration-300 relative"
+      className="h-full flex flex-col border-r border-cyber-border bg-cyber-dark transition-all duration-300 relative flex-shrink-0"
       style={{ width: collapsed ? 48 : 280 }}
     >
-      {/* Collapse toggle button — floating */}
+      {/* Collapse toggle */}
       <button
         onClick={() => setCollapsed(!collapsed)}
         className="absolute top-3 z-50 p-1.5 rounded-lg bg-cyber-panel border border-cyber-border text-cyber-cyan hover:bg-cyber-border transition-colors"
@@ -100,13 +117,13 @@ export default function Sidebar({
       {!collapsed && (
         <div className="flex flex-col h-full overflow-hidden">
           {/* Header */}
-          <div className="h-[60px] flex items-center px-4 border-b border-cyber-border">
+          <div className="h-[60px] flex items-center px-4 border-b border-cyber-border flex-shrink-0">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-cyber-cyan/10 border border-cyber-cyan/30 flex items-center justify-center">
                 <FolderOpen size={16} className="text-cyber-cyan" />
               </div>
               <div>
-                <h1 className="text-sm font-bold text-cyber-text tracking-wide">Zhétikal</h1>
+                <h1 className="text-sm font-bold text-cyber-text tracking-wide">Ghostint</h1>
                 <p className="text-[10px] text-cyber-text-dim font-mono uppercase tracking-widest">
                   OSINT Tracker
                 </p>
@@ -115,7 +132,7 @@ export default function Sidebar({
           </div>
 
           {/* Cases section */}
-          <div className="border-b border-cyber-border">
+          <div className="border-b border-cyber-border flex-shrink-0">
             <button
               onClick={() => setCasesOpen(!casesOpen)}
               className="w-full flex items-center justify-between px-4 py-2.5 text-xs font-semibold text-cyber-text-dim uppercase tracking-wider hover:bg-cyber-panel/50 transition-colors"
@@ -125,39 +142,80 @@ export default function Sidebar({
             </button>
 
             {casesOpen && (
-              <div className="px-3 pb-3 space-y-1">
-                {cases.map((c) => (
-                  <div
-                    key={c.id}
-                    onClick={() => onSwitchCase(c.id)}
-                    className={`group flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer transition-all ${
-                      c.id === activeCaseId
-                        ? 'bg-cyber-cyan/10 border border-cyber-cyan/30'
-                        : 'hover:bg-cyber-panel/50 border border-transparent'
-                    }`}
-                  >
-                    <FolderOpen
-                      size={12}
-                      className={c.id === activeCaseId ? 'text-cyber-cyan' : 'text-cyber-text-dim'}
-                    />
-                    <span
-                      className={`flex-1 text-xs truncate ${
-                        c.id === activeCaseId ? 'text-cyber-cyan font-medium' : 'text-cyber-text'
+              <div className="px-3 pb-3 space-y-1 max-h-64 overflow-y-auto">
+                {cases.map((c) => {
+                  const isActive = c.id === activeCaseId;
+                  const isEditing = editingCaseId === c.id;
+
+                  if (isEditing) {
+                    return (
+                      <div key={c.id} className="space-y-1 p-2 rounded-lg bg-cyber-panel border border-cyber-cyan/40">
+                        <input
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                          autoFocus
+                          className="w-full bg-cyber-dark border border-cyber-border rounded px-2 py-1 text-xs text-cyber-text outline-none focus:border-cyber-cyan"
+                          onKeyDown={(e) => { if (e.key === 'Enter') commitEdit(); if (e.key === 'Escape') setEditingCaseId(null); }}
+                        />
+                        <input
+                          value={editDesc}
+                          onChange={(e) => setEditDesc(e.target.value)}
+                          placeholder="Description..."
+                          className="w-full bg-cyber-dark border border-cyber-border rounded px-2 py-1 text-xs text-cyber-text-dim outline-none focus:border-cyber-cyan"
+                          onKeyDown={(e) => { if (e.key === 'Enter') commitEdit(); if (e.key === 'Escape') setEditingCaseId(null); }}
+                        />
+                        <div className="flex gap-1">
+                          <button onClick={commitEdit} className="flex items-center gap-1 flex-1 justify-center py-1 rounded text-[10px] font-semibold bg-cyber-cyan/20 text-cyber-cyan hover:bg-cyber-cyan/30 transition-colors">
+                            <Check size={9} /> Save
+                          </button>
+                          <button onClick={() => setEditingCaseId(null)} className="px-2 py-1 rounded text-[10px] text-cyber-text-dim hover:bg-cyber-dark transition-colors">
+                            <X size={10} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div
+                      key={c.id}
+                      onClick={() => onSwitchCase(c.id)}
+                      className={`group flex flex-col gap-0.5 px-2 py-1.5 rounded-lg cursor-pointer transition-all ${
+                        isActive
+                          ? 'bg-cyber-cyan/10 border border-cyber-cyan/30'
+                          : 'hover:bg-cyber-panel/50 border border-transparent'
                       }`}
                     >
-                      {c.name}
-                    </span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDeleteCase(c.id);
-                      }}
-                      className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-cyber-red/20 text-cyber-text-dim hover:text-cyber-red transition-all"
-                    >
-                      <Trash2 size={10} />
-                    </button>
-                  </div>
-                ))}
+                      <div className="flex items-center gap-2">
+                        <FolderOpen size={12} className={isActive ? 'text-cyber-cyan flex-shrink-0' : 'text-cyber-text-dim flex-shrink-0'} />
+                        <span className={`flex-1 text-xs truncate ${isActive ? 'text-cyber-cyan font-medium' : 'text-cyber-text'}`}>
+                          {c.name}
+                        </span>
+                        <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={(e) => startEdit(c, e)}
+                            className="p-0.5 rounded hover:bg-cyber-cyan/20 text-cyber-text-dim hover:text-cyber-cyan transition-all"
+                            title="Renommer"
+                          >
+                            <Pencil size={9} />
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onDeleteCase(c.id); }}
+                            className="p-0.5 rounded hover:bg-cyber-red/20 text-cyber-text-dim hover:text-cyber-red transition-all"
+                            title="Supprimer"
+                          >
+                            <Trash2 size={10} />
+                          </button>
+                        </div>
+                      </div>
+                      {c.description && (
+                        <p className="text-[10px] text-cyber-text-dim font-mono truncate pl-5 opacity-70">
+                          {c.description}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
 
                 {creatingCase ? (
                   <div className="space-y-1.5 p-2 rounded-lg bg-cyber-panel border border-cyber-border">
@@ -174,6 +232,7 @@ export default function Sidebar({
                       onChange={(e) => setNewCaseDesc(e.target.value)}
                       placeholder="Description (optional)..."
                       className="w-full bg-cyber-dark border border-cyber-border rounded px-2 py-1 text-xs text-cyber-text-dim outline-none focus:border-cyber-cyan"
+                      onKeyDown={(e) => e.key === 'Enter' && handleCreateCase()}
                     />
                     <div className="flex gap-1">
                       <button
@@ -215,7 +274,6 @@ export default function Sidebar({
 
             {entitiesOpen && (
               <div className="px-3 pb-3 space-y-2">
-                {/* Label input + add button */}
                 <div className="flex gap-1">
                   <input
                     value={entityLabel}
@@ -226,13 +284,13 @@ export default function Sidebar({
                   />
                   <button
                     onClick={() => handleAddEntity(selectedType)}
-                    className="px-2 py-1 rounded bg-cyber-cyan/20 text-cyber-cyan hover:bg-cyber-cyan/30 transition-colors"
+                    disabled={!activeCaseId}
+                    className="px-2 py-1 rounded bg-cyber-cyan/20 text-cyber-cyan hover:bg-cyber-cyan/30 transition-colors disabled:opacity-30"
                   >
                     <Plus size={12} />
                   </button>
                 </div>
 
-                {/* Type search */}
                 <div className="relative">
                   <Search size={10} className="absolute left-2 top-1/2 -translate-y-1/2 text-cyber-text-dim" />
                   <input
@@ -243,7 +301,6 @@ export default function Sidebar({
                   />
                 </div>
 
-                {/* Entity type grid */}
                 <div className="grid grid-cols-2 gap-1">
                   {filteredTypes.map((type) => {
                     const color = ENTITY_COLORS[type];
@@ -252,14 +309,15 @@ export default function Sidebar({
                       <button
                         key={type}
                         onClick={() => handleAddEntity(type)}
-                        className="entity-btn flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[10px] font-medium border transition-all"
+                        disabled={!activeCaseId}
+                        className="entity-btn flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[10px] font-medium border transition-all disabled:opacity-30"
                         style={{
                           background: isSelected ? `${color}18` : 'rgba(17,24,39,0.5)',
                           borderColor: isSelected ? `${color}70` : `${color}30`,
                           color: isSelected ? color : 'var(--cyber-text-dim)',
-                          ['--glow-color' as string]: color,
                         }}
                         onMouseEnter={(e) => {
+                          if (!activeCaseId) return;
                           const el = e.currentTarget;
                           el.style.background = `${color}18`;
                           el.style.borderColor = `${color}70`;
@@ -274,10 +332,7 @@ export default function Sidebar({
                           el.style.boxShadow = '';
                         }}
                       >
-                        <span
-                          className="w-2 h-2 rounded-full shrink-0"
-                          style={{ background: color }}
-                        />
+                        <span className="w-2 h-2 rounded-full shrink-0" style={{ background: color }} />
                         {ENTITY_LABELS[type]}
                       </button>
                     );
@@ -288,8 +343,7 @@ export default function Sidebar({
           </div>
 
           {/* Bottom actions */}
-          <div className="border-t border-cyber-border p-3 space-y-1">
-            {/* Save Progress — prominent */}
+          <div className="border-t border-cyber-border p-3 space-y-1 flex-shrink-0">
             <button
               onClick={onSaveProgress}
               disabled={!activeCaseId}
@@ -298,6 +352,16 @@ export default function Sidebar({
               <Save size={12} />
               Save Progress
             </button>
+
+            {activeCaseId && (
+              <button
+                onClick={onCloseCase}
+                className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-cyber-orange hover:bg-cyber-orange/10 border border-transparent hover:border-cyber-orange/30 transition-colors"
+              >
+                <FolderX size={12} />
+                Close Case
+              </button>
+            )}
 
             <button
               onClick={onExport}

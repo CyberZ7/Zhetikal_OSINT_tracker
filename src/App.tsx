@@ -105,7 +105,7 @@ function FlowExporter({
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8);
             pdf.setTextColor(0, 240, 255);
-            pdf.text('ZHÉTIKAL', margin, 8);
+            pdf.text('GHOSTINT / CYBERZ7', margin, 8);
             pdf.setFont('helvetica', 'normal');
             pdf.setTextColor(148, 163, 184);
             const ref = activeCase.caseTitle ? ` — ${activeCase.caseTitle}` : '';
@@ -313,6 +313,8 @@ export default function App() {
     importCase,
     updateCaseNotes,
     updateCaseTitle,
+    closeCase,
+    updateCase,
   } = useStore();
 
   const [toolkitOpen, setToolkitOpen] = useState(false);
@@ -434,7 +436,9 @@ export default function App() {
         activeCaseId={activeCaseId}
         onCreateCase={createCase}
         onSwitchCase={switchCase}
+        onCloseCase={() => { closeCase(); setNotePanelOpen(false); setSelectedNodeId(null); }}
         onDeleteCase={deleteCase}
+        onUpdateCase={updateCase}
         onAddEntity={handleAddEntity}
         onSaveProgress={saveProgress}
         onExport={exportCase}
@@ -569,6 +573,7 @@ export default function App() {
               selectedNode={selectedNode}
               caseNotes={activeCase?.caseNotes ?? ''}
               caseTitle={activeCase?.caseTitle ?? ''}
+              caseDescription={activeCase?.description}
               onUpdateEntityNotes={handleUpdateEntityNotes}
               onUpdateCaseNotes={updateCaseNotes}
               onUpdateCaseTitle={updateCaseTitle}

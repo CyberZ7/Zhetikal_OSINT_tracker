@@ -6,6 +6,7 @@ interface NotePanelProps {
   selectedNode: EntityNode | null;
   caseNotes: string;
   caseTitle: string;
+  caseDescription?: string;
   onUpdateEntityNotes: (nodeId: string, notes: string) => void;
   onUpdateCaseNotes: (notes: string) => void;
   onUpdateCaseTitle: (title: string) => void;
@@ -38,6 +39,7 @@ export default function NotePanel({
   selectedNode,
   caseNotes,
   caseTitle,
+  caseDescription,
   onUpdateEntityNotes,
   onUpdateCaseNotes,
   onUpdateCaseTitle,
@@ -208,9 +210,9 @@ export default function NotePanel({
                 className="w-full bg-cyber-black border border-cyber-border rounded-lg px-3 py-2 text-sm font-bold text-cyber-cyan outline-none focus:border-cyber-cyan placeholder:text-cyber-text-dim/30 placeholder:font-normal tracking-wide transition-colors"
                 style={{ fontFamily: 'var(--font-tech, monospace)' }}
               />
-              {titleDraft && (
-                <p className="mt-1.5 text-[10px] font-mono text-cyber-text-dim/60 truncate">
-                  {titleDraft}
+              {caseDescription && (
+                <p className="mt-2 text-[11px] text-cyber-text-dim leading-relaxed border-l-2 border-cyber-border pl-2">
+                  {caseDescription}
                 </p>
               )}
             </div>
