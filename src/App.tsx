@@ -195,7 +195,7 @@ function FlowExporter({
           pdf.setFont('helvetica', 'normal');
           pdf.setFontSize(8);
           pdf.setTextColor(100, 116, 139);
-          pdf.text(`Généré le ${new Date().toLocaleString('fr-FR')} — Zhétikal OSINT`, margin, y);
+          pdf.text(`Généré le ${new Date().toLocaleString('fr-FR')} — Ghostint / CyberZ7`, margin, y);
           y += 10;
 
           pdf.setDrawColor(30, 58, 95);
@@ -360,12 +360,9 @@ export default function App() {
 
   useEffect(() => {
     if (cases.length === 0) {
-      const id = createCase('Default Case', '');
-      switchCase(id);
-    } else if (!activeCaseId) {
-      switchCase(cases[0].id);
+      createCase('Default Case', '');
     }
-  }, [cases, activeCaseId, createCase, switchCase]);
+  }, [cases.length, createCase]);
 
   const handleAddEntity = useCallback(
     (type: EntityType, label: string) => addEntity(type, label),

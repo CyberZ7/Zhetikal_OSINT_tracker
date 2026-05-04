@@ -169,17 +169,9 @@ export function useStore() {
       setCases((prev) => {
         const remaining = prev.filter((c) => c.id !== caseId);
         if (activeCaseId === caseId) {
-          if (remaining.length > 0) {
-            const target = remaining[0];
-            switchingRef.current = true;
-            setNodes(target.nodes);
-            setEdges(target.edges);
-            setActiveCaseId(target.id);
-          } else {
-            setActiveCaseId(null);
-            setNodes([]);
-            setEdges([]);
-          }
+          setActiveCaseId(null);
+          setNodes([]);
+          setEdges([]);
         }
         return remaining;
       });
