@@ -196,8 +196,8 @@ export default function App() {
             <img
               src="/photo_2026-05-04_13-46-20.jpg"
               alt="Zhétikal"
-              className="h-8 w-8 rounded-full object-cover object-top mix-blend-lighten"
-              style={{ filter: 'brightness(1.1) contrast(1.1)' }}
+              className="h-10 w-10 rounded-full object-cover object-center mix-blend-lighten flex-shrink-0"
+              style={{ filter: 'brightness(1.15) contrast(1.1)' }}
             />
             <span className="text-sm font-semibold text-cyber-text">
               {activeCase?.name || 'No Case'}
