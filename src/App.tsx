@@ -76,27 +76,212 @@ function FlowExporter({
     const exportPdf = async () => {
       if (!activeCase) return;
       const dataUrl = await captureViewport();
-      const img = new window.Image();
-      img.onload = () => {
-        const pdf = new jsPDF({
-          orientation: img.width > img.height ? 'landscape' : 'portrait',
-          unit: 'mm',
-          format: 'a4',
-        });
-        const pdfW = pdf.internal.pageSize.getWidth();
-        const pdfH = pdf.internal.pageSize.getHeight();
-        const margin = 10;
-        const ratio = img.width / img.height;
-        let w = pdfW - margin * 2;
-        let h = w / ratio;
-        if (h > pdfH - margin * 2) {
-          h = pdfH - margin * 2;
-          w = h * ratio;
-        }
-        pdf.addImage(dataUrl, 'PNG', (pdfW - w) / 2, (pdfH - h) / 2, w, h);
-        pdf.save(`${activeCase.name.replace(/\s+/g, '_')}_report.pdf`);
-      };
-      img.src = dataUrl;
+
+      await new Promise<void>((resolve) => {
+        const img = new window.Image();
+        img.onload = () => {
+          const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+          const pdfW = pdf.internal.pageSize.getWidth();
+          const pdfH = pdf.internal.pageSize.getHeight();
+          const margin = 14;
+          const contentW = pdfW - margin * 2;
+
+          // ── Helper: strip Markdown to plain text ──────────────────────
+          const stripMd = (raw: string): string =>
+            raw
+              .replace(/^#{1,6}\s+/gm, '')       // headings
+              .replace(/\*\*(.+?)\*\*/g, '$1')    // bold
+              .replace(/\*(.+?)\*/g, '$1')         // italic
+              .replace(/`(.+?)`/g, '$1')           // inline code
+              .replace(/^[-*+]\s+/gm, '• ')        // unordered list
+              .replace(/^\d+\.\s+/gm, (m) => m)   // ordered list — keep as-is
+              .replace(/\[(.+?)\]\(.+?\)/g, '$1') // links
+              .trim();
+
+          // ── Helper: draw page header ──────────────────────────────────
+          const drawPageHeader = (pageNum: number, totalLabel?: string) => {
+            pdf.setFillColor(10, 14, 23);
+            pdf.rect(0, 0, pdfW, 12, 'F');
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(8);
+            pdf.setTextColor(0, 240, 255);
+            pdf.text('ZHÉTIKAL', margin, 8);
+            pdf.setFont('helvetica', 'normal');
+            pdf.setTextColor(148, 163, 184);
+            const ref = activeCase.caseTitle ? ` — ${activeCase.caseTitle}` : '';
+            pdf.text(`${activeCase.name}${ref}`, margin + 22, 8);
+            const pageLabel = totalLabel ? `Page ${pageNum} ${totalLabel}` : `Page ${pageNum}`;
+            pdf.text(pageLabel, pdfW - margin, 8, { align: 'right' });
+            pdf.setDrawColor(30, 58, 95);
+            pdf.line(margin, 11, pdfW - margin, 11);
+          };
+
+          // ── PAGE 1: Graph ─────────────────────────────────────────────
+          drawPageHeader(1);
+
+          // Title block
+          pdf.setFont('helvetica', 'bold');
+          pdf.setFontSize(16);
+          pdf.setTextColor(226, 232, 240);
+          pdf.text(activeCase.name, margin, 22);
+
+          if (activeCase.caseTitle) {
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(10);
+            pdf.setTextColor(0, 240, 255);
+            pdf.text(activeCase.caseTitle, margin, 29);
+          }
+
+          const titleBlockH = activeCase.caseTitle ? 34 : 27;
+
+          // Graph image
+          const ratio = img.width / img.height;
+          const maxImgH = pdfH - titleBlockH - margin - 16;
+          let imgW = contentW;
+          let imgH = imgW / ratio;
+          if (imgH > maxImgH) { imgH = maxImgH; imgW = imgH * ratio; }
+          const imgX = margin + (contentW - imgW) / 2;
+          pdf.addImage(dataUrl, 'PNG', imgX, titleBlockH, imgW, imgH);
+
+          // Graph caption
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(8);
+          pdf.setTextColor(100, 116, 139);
+          const nodesCount = activeCase.nodes.length;
+          const edgesCount = activeCase.edges.length;
+          pdf.text(
+            `${nodesCount} entité${nodesCount !== 1 ? 's' : ''} · ${edgesCount} lien${edgesCount !== 1 ? 's' : ''} · ${new Date().toLocaleDateString('fr-FR')}`,
+            pdfW / 2, titleBlockH + imgH + 5, { align: 'center' }
+          );
+
+          // ── PAGES 2+: Report ──────────────────────────────────────────
+          const entitiesWithNotes = activeCase.nodes
+            .filter((n) => (n.data as EntityData).notes?.trim())
+            .map((n) => ({ id: n.id, data: n.data as EntityData }));
+
+          const hasCaseNotes = !!activeCase.caseNotes?.trim();
+          const hasReport = hasCaseNotes || entitiesWithNotes.length > 0;
+
+          if (!hasReport) {
+            pdf.save(`${activeCase.name.replace(/\s+/g, '_')}_report.pdf`);
+            resolve();
+            return;
+          }
+
+          pdf.addPage();
+          let pageIndex = 2;
+          drawPageHeader(pageIndex);
+
+          let y = 18;
+          const lineH = 5;
+          const sectionGap = 8;
+
+          const ensureSpace = (needed: number) => {
+            if (y + needed > pdfH - margin) {
+              pdf.addPage();
+              pageIndex++;
+              drawPageHeader(pageIndex);
+              y = 18;
+            }
+          };
+
+          // Report title
+          pdf.setFont('helvetica', 'bold');
+          pdf.setFontSize(14);
+          pdf.setTextColor(226, 232, 240);
+          pdf.text('Rapport d\'enquête', margin, y);
+          y += 8;
+
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(8);
+          pdf.setTextColor(100, 116, 139);
+          pdf.text(`Généré le ${new Date().toLocaleString('fr-FR')} — Zhétikal OSINT`, margin, y);
+          y += 10;
+
+          pdf.setDrawColor(30, 58, 95);
+          pdf.line(margin, y, pdfW - margin, y);
+          y += sectionGap;
+
+          // ── Case notes section ────────────────────────────────────────
+          if (hasCaseNotes) {
+            ensureSpace(12);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(11);
+            pdf.setTextColor(0, 200, 212);
+            pdf.text('Notes de dossier', margin, y);
+            y += 2;
+            pdf.setDrawColor(0, 200, 212);
+            pdf.setLineWidth(0.3);
+            pdf.line(margin, y, margin + 50, y);
+            pdf.setLineWidth(0.2);
+            y += 5;
+
+            const plainNotes = stripMd(activeCase.caseNotes!);
+            const lines = pdf.splitTextToSize(plainNotes, contentW);
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(9);
+            pdf.setTextColor(226, 232, 240);
+            for (const line of lines) {
+              ensureSpace(lineH);
+              pdf.text(line, margin, y);
+              y += lineH;
+            }
+            y += sectionGap;
+          }
+
+          // ── Entity notes sections ─────────────────────────────────────
+          if (entitiesWithNotes.length > 0) {
+            ensureSpace(12);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(11);
+            pdf.setTextColor(0, 200, 212);
+            pdf.text('Notes par entité', margin, y);
+            y += 2;
+            pdf.setDrawColor(0, 200, 212);
+            pdf.setLineWidth(0.3);
+            pdf.line(margin, y, margin + 50, y);
+            pdf.setLineWidth(0.2);
+            y += 7;
+
+            for (const entity of entitiesWithNotes) {
+              ensureSpace(16);
+
+              // Entity header pill
+              pdf.setFillColor(17, 24, 39);
+              pdf.roundedRect(margin, y - 4, contentW, 7, 1.5, 1.5, 'F');
+              pdf.setDrawColor(30, 58, 95);
+              pdf.roundedRect(margin, y - 4, contentW, 7, 1.5, 1.5, 'S');
+
+              pdf.setFont('helvetica', 'bold');
+              pdf.setFontSize(9);
+              pdf.setTextColor(226, 232, 240);
+              pdf.text(entity.data.label, margin + 3, y);
+
+              pdf.setFont('helvetica', 'normal');
+              pdf.setFontSize(7.5);
+              pdf.setTextColor(100, 116, 139);
+              pdf.text(entity.data.entityType.toUpperCase(), pdfW - margin - 3, y, { align: 'right' });
+              y += 6;
+
+              const plainEntityNotes = stripMd(entity.data.notes);
+              const entityLines = pdf.splitTextToSize(plainEntityNotes, contentW - 4);
+              pdf.setFont('helvetica', 'normal');
+              pdf.setFontSize(9);
+              pdf.setTextColor(203, 213, 225);
+              for (const line of entityLines) {
+                ensureSpace(lineH);
+                pdf.text(line, margin + 2, y);
+                y += lineH;
+              }
+              y += sectionGap - 2;
+            }
+          }
+
+          pdf.save(`${activeCase.name.replace(/\s+/g, '_')}_report.pdf`);
+          resolve();
+        };
+        img.src = dataUrl;
+      });
     };
 
     onRegisterExportPng(exportPng);
