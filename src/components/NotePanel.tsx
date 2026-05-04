@@ -107,10 +107,10 @@ export default function NotePanel({
     const newVal = ta.value.slice(0, start) + before + selected + after + ta.value.slice(end);
     if (tab === 'entity') handleEntityChange(newVal);
     else handleCaseChange(newVal);
-    requestAnimationFrame(() => {
+    setTimeout(() => {
       ta.setSelectionRange(start + before.length, end + before.length);
       ta.focus();
-    });
+    }, 0);
   };
 
   const currentDraft = tab === 'entity' ? entityDraft : caseDraft;
@@ -121,8 +121,8 @@ export default function NotePanel({
 
   return (
     <div
-      className="fixed right-0 flex flex-col bg-cyber-dark border-l border-cyber-border transition-all duration-300 z-40"
-      style={{ top: 60, bottom: 28, width: panelWidth }}
+      className="flex flex-col bg-cyber-dark border-l border-cyber-border transition-all duration-300 flex-shrink-0"
+      style={{ width: panelWidth }}
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-cyber-border flex-shrink-0">

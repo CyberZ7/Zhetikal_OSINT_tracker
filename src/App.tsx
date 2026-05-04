@@ -127,6 +127,7 @@ export default function App() {
     exportCase,
     importCase,
     updateCaseNotes,
+    updateCaseTitle,
   } = useStore();
 
   const [toolkitOpen, setToolkitOpen] = useState(false);
@@ -257,9 +258,9 @@ export default function App() {
         onImport={importCase}
       />
 
-      <div className="flex-1 flex flex-col relative">
+      <div className="flex-1 flex flex-col relative min-w-0">
         {/* Top bar */}
-        <div className="h-[60px] flex items-center justify-between px-4 border-b border-cyber-border bg-cyber-dark/80 backdrop-blur-sm z-10">
+        <div className="h-[60px] flex items-center justify-between px-4 border-b border-cyber-border bg-cyber-dark/80 backdrop-blur-sm z-10 flex-shrink-0">
           <div className="flex items-center gap-3">
             <img
               src="/photo_2026-05-04_13-46-20.jpg"
@@ -330,8 +331,9 @@ export default function App() {
           </div>
         )}
 
-        {/* React Flow canvas */}
-        <div className="flex-1 react-flow-canvas-wrapper">
+        {/* Canvas + Note panel row */}
+        <div className="flex-1 flex overflow-hidden min-h-0">
+        <div className="flex-1 react-flow-canvas-wrapper min-w-0">
           <ReactFlow
             nodes={nodes}
             edges={styledEdges}
@@ -377,6 +379,19 @@ export default function App() {
           </ReactFlow>
         </div>
 
+          {notePanelOpen && (
+            <NotePanel
+              selectedNode={selectedNode}
+              caseNotes={activeCase?.caseNotes ?? ''}
+              caseTitle={activeCase?.caseTitle ?? ''}
+              onUpdateEntityNotes={handleUpdateEntityNotes}
+              onUpdateCaseNotes={updateCaseNotes}
+              onUpdateCaseTitle={updateCaseTitle}
+              onClose={() => setNotePanelOpen(false)}
+            />
+          )}
+        </div>
+
         {/* Status bar */}
         <div className="h-7 flex items-center justify-between px-4 border-t border-cyber-border bg-cyber-dark/80 text-[10px] font-mono text-cyber-text-dim">
           <div className="flex items-center gap-3">
@@ -398,18 +413,6 @@ export default function App() {
       </div>
 
       <ToolkitPanel isOpen={toolkitOpen} onClose={() => setToolkitOpen(false)} />
-
-      {notePanelOpen && (
-        <NotePanel
-          selectedNode={selectedNode}
-          caseNotes={activeCase?.caseNotes ?? ''}
-          caseTitle={activeCase?.caseTitle ?? ''}
-          onUpdateEntityNotes={handleUpdateEntityNotes}
-          onUpdateCaseNotes={updateCaseNotes}
-          onUpdateCaseTitle={updateCaseTitle}
-          onClose={() => setNotePanelOpen(false)}
-        />
-      )}
     </div>
   );
 }
