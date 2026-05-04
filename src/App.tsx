@@ -198,7 +198,6 @@ export default function App() {
 
   const handleNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
     setSelectedNodeId(node.id);
-    setNotePanelOpen(true);
   }, []);
 
   const handlePaneClick = useCallback(() => {
