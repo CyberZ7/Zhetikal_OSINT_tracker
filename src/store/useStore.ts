@@ -157,7 +157,7 @@ export function useStore() {
       const newEdge: Edge = {
         ...connection,
         id: `e-${generateId()}`,
-        type: 'smoothstep',
+        type: 'custom',
         animated: false,
         style: { stroke: '#00c8d4', strokeWidth: 3 },
         markerEnd: {

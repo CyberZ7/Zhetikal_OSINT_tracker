@@ -17,6 +17,7 @@ import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
 
 import EntityNode from './components/EntityNode';
+import CustomEdge from './components/CustomEdge';
 import Sidebar from './components/Sidebar';
 import ToolkitPanel from './components/ToolkitPanel';
 import { useStore } from './store/useStore';
@@ -24,6 +25,10 @@ import type { EntityData, EntityType } from './types';
 
 const nodeTypes: NodeTypes = {
   entity: EntityNode as NodeTypes['entity'],
+};
+
+const edgeTypes = {
+  custom: CustomEdge,
 };
 
 // Inner component that has access to useReactFlow context
@@ -134,17 +139,23 @@ export default function App() {
       const { id, label, notes } = (e as CustomEvent).detail;
       updateNodeData(id, { label, notes });
     };
-    const handleDelete = (e: Event) => {
+    const handleDeleteNode = (e: Event) => {
       const { id } = (e as CustomEvent).detail;
       deleteNode(id);
     };
+    const handleDeleteEdge = (e: Event) => {
+      const { id } = (e as CustomEvent).detail;
+      deleteEdge(id);
+    };
     window.addEventListener('entity-update', handleUpdate);
-    window.addEventListener('entity-delete', handleDelete);
+    window.addEventListener('entity-delete', handleDeleteNode);
+    window.addEventListener('edge-delete', handleDeleteEdge);
     return () => {
       window.removeEventListener('entity-update', handleUpdate);
-      window.removeEventListener('entity-delete', handleDelete);
+      window.removeEventListener('entity-delete', handleDeleteNode);
+      window.removeEventListener('edge-delete', handleDeleteEdge);
     };
-  }, [updateNodeData, deleteNode]);
+  }, [updateNodeData, deleteNode, deleteEdge]);
 
   useEffect(() => {
     if (cases.length === 0) {
@@ -309,12 +320,13 @@ export default function App() {
             onEdgeClick={handleEdgeClick}
             onPaneClick={handlePaneClick}
             nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
             deleteKeyCode={null}
             fitView
             snapToGrid
             snapGrid={[16, 16]}
             defaultEdgeOptions={{
-              type: 'smoothstep',
+              type: 'custom',
               animated: false,
               style: { stroke: '#00c8d4', strokeWidth: 3 },
               markerEnd: {

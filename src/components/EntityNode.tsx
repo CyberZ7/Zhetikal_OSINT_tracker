@@ -28,6 +28,9 @@ const TYPE_LABELS: Record<string, string> = {
   note: 'NOTE',
 };
 
+// 3 handles per side, at 25%, 50%, 75% offset
+const SIDE_OFFSETS = [25, 50, 75];
+
 interface EntityNodeProps {
   id: string;
   data: EntityData;
@@ -90,30 +93,47 @@ export default memo(function EntityNode({ id, data, selected }: EntityNodeProps)
       }}
       onDoubleClick={() => !editing && setEditing(true)}
     >
-      <Handle
-        type="target"
-        position={Position.Left}
-        className="!w-3 !h-3"
-        style={{ background: borderColor }}
-      />
-      <Handle
-        type="source"
-        position={Position.Right}
-        className="!w-3 !h-3"
-        style={{ background: borderColor }}
-      />
-      <Handle
-        type="target"
-        position={Position.Top}
-        className="!w-3 !h-3"
-        style={{ background: borderColor }}
-      />
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        className="!w-3 !h-3"
-        style={{ background: borderColor }}
-      />
+      {/* Fixed handles: 3 per side with explicit IDs */}
+      {SIDE_OFFSETS.map((offset) => (
+        <Handle
+          key={`left-${offset}`}
+          id={`left-${offset}`}
+          type="target"
+          position={Position.Left}
+          style={{ background: borderColor, top: `${offset}%`, transform: 'translateY(-50%)' }}
+          className="!w-2.5 !h-2.5"
+        />
+      ))}
+      {SIDE_OFFSETS.map((offset) => (
+        <Handle
+          key={`right-${offset}`}
+          id={`right-${offset}`}
+          type="source"
+          position={Position.Right}
+          style={{ background: borderColor, top: `${offset}%`, transform: 'translateY(-50%)' }}
+          className="!w-2.5 !h-2.5"
+        />
+      ))}
+      {SIDE_OFFSETS.map((offset) => (
+        <Handle
+          key={`top-${offset}`}
+          id={`top-${offset}`}
+          type="target"
+          position={Position.Top}
+          style={{ background: borderColor, left: `${offset}%`, transform: 'translateX(-50%)' }}
+          className="!w-2.5 !h-2.5"
+        />
+      ))}
+      {SIDE_OFFSETS.map((offset) => (
+        <Handle
+          key={`bottom-${offset}`}
+          id={`bottom-${offset}`}
+          type="source"
+          position={Position.Bottom}
+          style={{ background: borderColor, left: `${offset}%`, transform: 'translateX(-50%)' }}
+          className="!w-2.5 !h-2.5"
+        />
+      ))}
 
       {/* Header */}
       <div className="flex items-center gap-2 px-3 pt-3 pb-2">
