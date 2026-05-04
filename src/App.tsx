@@ -21,6 +21,7 @@ import CustomEdge from './components/CustomEdge';
 import Sidebar from './components/Sidebar';
 import ToolkitPanel from './components/ToolkitPanel';
 import NotePanel from './components/NotePanel';
+import DisclaimerModal from './components/DisclaimerModal';
 import { useStore } from './store/useStore';
 import type { EntityData, EntityNode as EntityNodeType, EntityType } from './types';
 
@@ -320,6 +321,9 @@ export default function App() {
   const [toolkitOpen, setToolkitOpen] = useState(false);
   const [notePanelOpen, setNotePanelOpen] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
+  const [disclaimerAccepted, setDisclaimerAccepted] = useState(
+    () => sessionStorage.getItem('ghostint-disclaimer') === 'accepted'
+  );
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const flowWrapperRef = useRef<HTMLDivElement>(null);
@@ -426,8 +430,14 @@ export default function App() {
     return data?.color || '#1e3a5f';
   }, []);
 
+  const handleAcceptDisclaimer = () => {
+    sessionStorage.setItem('ghostint-disclaimer', 'accepted');
+    setDisclaimerAccepted(true);
+  };
+
   return (
     <div className="h-screen w-screen flex overflow-hidden bg-cyber-black">
+      {!disclaimerAccepted && <DisclaimerModal onAccept={handleAcceptDisclaimer} />}
       <Sidebar
         cases={cases}
         activeCaseId={activeCaseId}
@@ -586,8 +596,10 @@ export default function App() {
               <span className="w-1.5 h-1.5 rounded-full bg-cyber-green animate-pulse" />
               OPSEC: Local Storage Only
             </span>
-            <span>|</span>
-            <span>Zhétikal OSINT Case Tracker v2.0</span>
+            <span className="text-cyber-border">|</span>
+            <span className="text-cyber-text-dim/60">Usage éthique et légal requis</span>
+            <span className="text-cyber-border">|</span>
+            <span>Ghostint / CyberZ7 — OSINT Tracker</span>
           </div>
           <span>
             {new Date().toLocaleDateString('en-US', {
