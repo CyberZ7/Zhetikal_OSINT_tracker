@@ -106,7 +106,7 @@ export default function Sidebar({
                 <FolderOpen size={16} className="text-cyber-cyan" />
               </div>
               <div>
-                <h1 className="text-sm font-bold text-cyber-text tracking-wide">Zhetical</h1>
+                <h1 className="text-sm font-bold text-cyber-text tracking-wide">Zhétikal</h1>
                 <p className="text-[10px] text-cyber-text-dim font-mono uppercase tracking-widest">
                   OSINT Tracker
                 </p>

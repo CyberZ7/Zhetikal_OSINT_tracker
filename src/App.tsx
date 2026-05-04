@@ -363,7 +363,7 @@ export default function App() {
               OPSEC: Local Storage Only
             </span>
             <span>|</span>
-            <span>Zhetical OSINT Case Tracker v2.0</span>
+            <span>Zhétikal OSINT Case Tracker v2.0</span>
           </div>
           <span>
             {new Date().toLocaleDateString('en-US', {
