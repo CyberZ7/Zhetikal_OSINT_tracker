@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ReactFlow,
   Background,
@@ -9,6 +9,7 @@ import {
   useReactFlow,
   type NodeTypes,
   type Node,
+  type Edge,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Ghost, Activity } from 'lucide-react';
@@ -115,6 +116,7 @@ export default function App() {
     updateNodeData,
     onConnect,
     deleteNode,
+    deleteEdge,
     saveProgress,
     exportCase,
     importCase,
@@ -122,6 +124,8 @@ export default function App() {
 
   const [toolkitOpen, setToolkitOpen] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
+  const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
+  const flowWrapperRef = useRef<HTMLDivElement>(null);
   const [exportPngFn, setExportPngFn] = useState<() => Promise<void>>(() => async () => {});
   const [exportPdfFn, setExportPdfFn] = useState<() => Promise<void>>(() => async () => {});
 
@@ -163,6 +167,38 @@ export default function App() {
   const handleRegisterExportPdf = useCallback((fn: () => Promise<void>) => {
     setExportPdfFn(() => fn);
   }, []);
+
+  const handleEdgeClick = useCallback((_: React.MouseEvent, edge: Edge) => {
+    setSelectedEdgeId((prev) => (prev === edge.id ? null : edge.id));
+  }, []);
+
+  const handlePaneClick = useCallback(() => {
+    setSelectedEdgeId(null);
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedEdgeId) {
+        deleteEdge(selectedEdgeId);
+        setSelectedEdgeId(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedEdgeId, deleteEdge]);
+
+  const styledEdges = edges.map((e) => ({
+    ...e,
+    style: e.id === selectedEdgeId
+      ? { stroke: '#ef4444', strokeWidth: 3 }
+      : { stroke: '#00c8d4', strokeWidth: 3 },
+    markerEnd: {
+      type: MarkerType.ArrowClosed,
+      width: 18,
+      height: 18,
+      color: e.id === selectedEdgeId ? '#ef4444' : '#00c8d4',
+    },
+  }));
 
   const nodeCount = nodes.length;
   const edgeCount = edges.length;
@@ -266,11 +302,14 @@ export default function App() {
         <div className="flex-1 react-flow-canvas-wrapper">
           <ReactFlow
             nodes={nodes}
-            edges={edges}
+            edges={styledEdges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
+            onEdgeClick={handleEdgeClick}
+            onPaneClick={handlePaneClick}
             nodeTypes={nodeTypes}
+            deleteKeyCode={null}
             fitView
             snapToGrid
             snapGrid={[16, 16]}

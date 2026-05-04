@@ -180,6 +180,13 @@ export function useStore() {
     [setNodes, setEdges]
   );
 
+  const deleteEdge = useCallback(
+    (edgeId: string) => {
+      setEdges((prev) => prev.filter((e) => e.id !== edgeId));
+    },
+    [setEdges]
+  );
+
   // Export current case as JSON file (Save Progress)
   const saveProgress = useCallback(() => {
     if (!activeCase) return;
@@ -256,6 +263,7 @@ export function useStore() {
     updateNodeData,
     onConnect,
     deleteNode,
+    deleteEdge,
     saveProgress,
     exportCase,
     importCase,

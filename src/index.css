@@ -101,11 +101,19 @@ button, input, textarea, select {
   stroke-linecap: round !important;
   stroke-linejoin: round !important;
   fill: none !important;
+  transition: stroke 0.15s ease, filter 0.15s ease;
+  cursor: pointer;
+}
+
+.react-flow__edge:hover .react-flow__edge-path {
+  stroke: #ff6b6b !important;
+  filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.6));
 }
 
 .react-flow__edge.selected .react-flow__edge-path {
-  stroke: #00f0ff !important;
+  stroke: #ef4444 !important;
   stroke-width: 3 !important;
+  filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.7));
 }
 
 .react-flow__edge-interaction {
