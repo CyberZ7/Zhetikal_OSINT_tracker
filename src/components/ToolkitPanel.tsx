@@ -76,9 +76,18 @@ export default function ToolkitPanel({ isOpen, onClose }: ToolkitPanelProps) {
         </div>
         <button
           onClick={onClose}
-          className="w-7 h-7 rounded-lg flex items-center justify-center text-cyber-text-dim hover:text-cyber-text hover:bg-cyber-panel transition-colors"
+          className="relative group flex-shrink-0 rounded-full overflow-hidden transition-all duration-200"
+          title="Close"
         >
-          <X size={14} />
+          <img
+            src="/image.png"
+            alt="Zhétikal"
+            className="h-9 w-9 rounded-full object-cover object-center mix-blend-lighten"
+            style={{ filter: 'brightness(1.1) contrast(1.1)' }}
+          />
+          <div className="absolute inset-0 rounded-full bg-cyber-dark/70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <X size={14} className="text-cyber-text" />
+          </div>
         </button>
       </div>
 
