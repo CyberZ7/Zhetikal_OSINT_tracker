@@ -2,7 +2,7 @@ import { memo, useState, useRef, useEffect } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import {
   Globe, Mail, User, Phone, MapPin, Building2,
-  FileText, Link, Bitcoin, StickyNote, Pencil, Trash2, X, Check,
+  FileText, Link, Bitcoin, StickyNote, Pencil, Trash2, X, Check, Maximize2,
 } from 'lucide-react';
 import type { EntityData } from '../types';
 
@@ -178,9 +178,21 @@ export default memo(function EntityNode({ id, data, selected }: EntityNodeProps)
             className="w-full bg-cyber-dark border border-cyber-border rounded px-2 py-1 text-xs text-cyber-text-dim outline-none focus:border-cyber-cyan resize-none font-mono"
           />
         ) : (
-          <p className="text-xs font-mono text-cyber-text-dim italic">
-            {data.notes || 'Double-click to edit...'}
-          </p>
+          <div className="flex items-start gap-1">
+            <p className="flex-1 text-xs font-mono text-cyber-text-dim italic line-clamp-2">
+              {data.notes || 'Double-click to edit...'}
+            </p>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                window.dispatchEvent(new CustomEvent('entity-expand-note', { detail: { id } }));
+              }}
+              className="flex-shrink-0 w-4 h-4 rounded flex items-center justify-center text-cyber-text-dim hover:text-cyber-cyan transition-colors"
+              title="Agrandir les notes"
+            >
+              <Maximize2 size={9} />
+            </button>
+          </div>
         )}
       </div>
 

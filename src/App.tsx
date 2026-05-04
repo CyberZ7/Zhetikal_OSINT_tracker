@@ -20,8 +20,9 @@ import EntityNode from './components/EntityNode';
 import CustomEdge from './components/CustomEdge';
 import Sidebar from './components/Sidebar';
 import ToolkitPanel from './components/ToolkitPanel';
+import NotePanel from './components/NotePanel';
 import { useStore } from './store/useStore';
-import type { EntityData, EntityType } from './types';
+import type { EntityData, EntityNode as EntityNodeType, EntityType } from './types';
 
 const nodeTypes: NodeTypes = {
   entity: EntityNode as NodeTypes['entity'],
@@ -125,14 +126,19 @@ export default function App() {
     saveProgress,
     exportCase,
     importCase,
+    updateCaseNotes,
   } = useStore();
 
   const [toolkitOpen, setToolkitOpen] = useState(false);
+  const [notePanelOpen, setNotePanelOpen] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const flowWrapperRef = useRef<HTMLDivElement>(null);
   const [exportPngFn, setExportPngFn] = useState<() => Promise<void>>(() => async () => {});
   const [exportPdfFn, setExportPdfFn] = useState<() => Promise<void>>(() => async () => {});
+
+  const selectedNode = (nodes.find((n) => n.id === selectedNodeId) as EntityNodeType | undefined) ?? null;
 
   useEffect(() => {
     const handleUpdate = (e: Event) => {
@@ -147,13 +153,20 @@ export default function App() {
       const { id } = (e as CustomEvent).detail;
       deleteEdge(id);
     };
+    const handleExpandNote = (e: Event) => {
+      const { id } = (e as CustomEvent).detail;
+      setSelectedNodeId(id);
+      setNotePanelOpen(true);
+    };
     window.addEventListener('entity-update', handleUpdate);
     window.addEventListener('entity-delete', handleDeleteNode);
     window.addEventListener('edge-delete', handleDeleteEdge);
+    window.addEventListener('entity-expand-note', handleExpandNote);
     return () => {
       window.removeEventListener('entity-update', handleUpdate);
       window.removeEventListener('entity-delete', handleDeleteNode);
       window.removeEventListener('edge-delete', handleDeleteEdge);
+      window.removeEventListener('entity-expand-note', handleExpandNote);
     };
   }, [updateNodeData, deleteNode, deleteEdge]);
 
@@ -183,9 +196,18 @@ export default function App() {
     setSelectedEdgeId((prev) => (prev === edge.id ? null : edge.id));
   }, []);
 
+  const handleNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
+    setSelectedNodeId(node.id);
+    setNotePanelOpen(true);
+  }, []);
+
   const handlePaneClick = useCallback(() => {
     setSelectedEdgeId(null);
   }, []);
+
+  const handleUpdateEntityNotes = useCallback((nodeId: string, notes: string) => {
+    updateNodeData(nodeId, { notes });
+  }, [updateNodeData]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -318,6 +340,7 @@ export default function App() {
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
             onEdgeClick={handleEdgeClick}
+            onNodeClick={handleNodeClick}
             onPaneClick={handlePaneClick}
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
@@ -376,6 +399,16 @@ export default function App() {
       </div>
 
       <ToolkitPanel isOpen={toolkitOpen} onClose={() => setToolkitOpen(false)} />
+
+      {notePanelOpen && (
+        <NotePanel
+          selectedNode={selectedNode}
+          caseNotes={activeCase?.caseNotes ?? ''}
+          onUpdateEntityNotes={handleUpdateEntityNotes}
+          onUpdateCaseNotes={updateCaseNotes}
+          onClose={() => setNotePanelOpen(false)}
+        />
+      )}
     </div>
   );
 }
