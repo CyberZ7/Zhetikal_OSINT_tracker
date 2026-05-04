@@ -64,9 +64,10 @@ export default function ToolkitPanel({ isOpen, onClose }: ToolkitPanelProps) {
 
   return (
     <div
-      className={`fixed inset-y-0 right-0 w-96 bg-cyber-dark border-l border-cyber-border flex flex-col transition-transform duration-300 z-50 ${
+      className={`fixed right-0 w-96 bg-cyber-dark border-l border-t border-b border-cyber-border flex flex-col transition-transform duration-300 z-50 ${
         isOpen ? 'translate-x-0' : 'translate-x-full'
       }`}
+      style={{ top: 60, bottom: 28 }}
     >
       <div className="flex items-center justify-between px-5 py-4 border-b border-cyber-border">
         <div>

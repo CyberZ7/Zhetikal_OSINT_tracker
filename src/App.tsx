@@ -243,7 +243,7 @@ export default function App() {
             <img
               src="/photo_2026-05-04_13-46-20.jpg"
               alt="Zhétikal"
-              className="h-9 w-9 rounded-full object-cover object-center mix-blend-lighten flex-shrink-0"
+              className="h-11 w-11 rounded-full object-cover object-center mix-blend-lighten flex-shrink-0"
               style={{ filter: 'brightness(1.15) contrast(1.1)' }}
             />
             <div className="flex items-center gap-2">
