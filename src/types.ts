@@ -36,6 +36,7 @@ export interface CaseData {
   nodes: EntityNode[];
   edges: Edge[];
   caseNotes?: string;
+  caseTitle?: string;
 }
 
 export const ENTITY_LABELS: Record<EntityType, string> = {

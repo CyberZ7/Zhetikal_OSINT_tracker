@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { X, FileText, StickyNote, Maximize2, Minimize2, Bold, Italic, List, Hash } from 'lucide-react';
+import { X, FileText, StickyNote, Maximize2, Minimize2, Bold, Italic, List, Hash, Tag } from 'lucide-react';
 import type { EntityNode } from '../types';
 
 interface NotePanelProps {
   selectedNode: EntityNode | null;
   caseNotes: string;
+  caseTitle: string;
   onUpdateEntityNotes: (nodeId: string, notes: string) => void;
   onUpdateCaseNotes: (notes: string) => void;
+  onUpdateCaseTitle: (title: string) => void;
   onClose: () => void;
 }
 
@@ -35,17 +37,21 @@ type Tab = 'entity' | 'case';
 export default function NotePanel({
   selectedNode,
   caseNotes,
+  caseTitle,
   onUpdateEntityNotes,
   onUpdateCaseNotes,
+  onUpdateCaseTitle,
   onClose,
 }: NotePanelProps) {
   const [tab, setTab] = useState<Tab>(selectedNode ? 'entity' : 'case');
   const [entityDraft, setEntityDraft] = useState('');
   const [caseDraft, setCaseDraft] = useState(caseNotes);
+  const [titleDraft, setTitleDraft] = useState(caseTitle);
   const [preview, setPreview] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const entitySaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const caseSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const titleSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Sync entity draft when selection changes
@@ -58,6 +64,11 @@ export default function NotePanel({
   useEffect(() => {
     setCaseDraft(caseNotes);
   }, [caseNotes]);
+
+  // Sync case title from props
+  useEffect(() => {
+    setTitleDraft(caseTitle);
+  }, [caseTitle]);
 
   // Auto-save entity notes with debounce
   const handleEntityChange = useCallback((val: string) => {
@@ -77,6 +88,15 @@ export default function NotePanel({
       onUpdateCaseNotes(val);
     }, 600);
   }, [onUpdateCaseNotes]);
+
+  // Auto-save case title with debounce
+  const handleTitleChange = useCallback((val: string) => {
+    setTitleDraft(val);
+    if (titleSaveTimer.current) clearTimeout(titleSaveTimer.current);
+    titleSaveTimer.current = setTimeout(() => {
+      onUpdateCaseTitle(val);
+    }, 400);
+  }, [onUpdateCaseTitle]);
 
   const insertMarkdown = (before: string, after = '') => {
     const ta = textareaRef.current;
@@ -172,6 +192,30 @@ export default function NotePanel({
       {/* Editor area */}
       {(tab === 'case' || selectedNode) && (
         <>
+          {/* Case title field — only in case tab */}
+          {tab === 'case' && (
+            <div className="px-4 pt-4 pb-3 border-b border-cyber-border flex-shrink-0">
+              <div className="flex items-center gap-2 mb-1.5">
+                <Tag size={11} className="text-cyber-cyan flex-shrink-0" />
+                <span className="text-[10px] font-mono uppercase tracking-widest text-cyber-text-dim">
+                  Référence dossier
+                </span>
+              </div>
+              <input
+                value={titleDraft}
+                onChange={(e) => handleTitleChange(e.target.value)}
+                placeholder="N° affaire / Titre du dossier..."
+                className="w-full bg-cyber-black border border-cyber-border rounded-lg px-3 py-2 text-sm font-bold text-cyber-cyan outline-none focus:border-cyber-cyan placeholder:text-cyber-text-dim/30 placeholder:font-normal tracking-wide transition-colors"
+                style={{ fontFamily: 'var(--font-tech, monospace)' }}
+              />
+              {titleDraft && (
+                <p className="mt-1.5 text-[10px] font-mono text-cyber-text-dim/60 truncate">
+                  {titleDraft}
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Toolbar */}
           <div className="flex items-center gap-0.5 px-3 py-1.5 border-b border-cyber-border flex-shrink-0">
             <button

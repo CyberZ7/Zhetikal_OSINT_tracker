@@ -404,8 +404,10 @@ export default function App() {
         <NotePanel
           selectedNode={selectedNode}
           caseNotes={activeCase?.caseNotes ?? ''}
+          caseTitle={activeCase?.caseTitle ?? ''}
           onUpdateEntityNotes={handleUpdateEntityNotes}
           onUpdateCaseNotes={updateCaseNotes}
+          onUpdateCaseTitle={updateCaseTitle}
           onClose={() => setNotePanelOpen(false)}
         />
       )}

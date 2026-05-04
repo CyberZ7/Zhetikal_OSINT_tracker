@@ -81,6 +81,18 @@ export function useStore() {
     [activeCaseId]
   );
 
+  const updateCaseTitle = useCallback(
+    (title: string) => {
+      if (!activeCaseId) return;
+      setCases((prev) =>
+        prev.map((c) =>
+          c.id === activeCaseId ? { ...c, caseTitle: title, updatedAt: new Date().toISOString() } : c
+        )
+      );
+    },
+    [activeCaseId]
+  );
+
   const createCase = useCallback((name: string, description: string = '') => {
     const newCase: CaseData = {
       id: generateId(),
@@ -280,5 +292,6 @@ export function useStore() {
     exportCase,
     importCase,
     updateCaseNotes,
+    updateCaseTitle,
   };
 }
