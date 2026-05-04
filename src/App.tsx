@@ -11,7 +11,7 @@ import {
   type Node,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Ghost, Shield, Activity } from 'lucide-react';
+import { Ghost, Activity } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
 
@@ -193,7 +193,12 @@ export default function App() {
         {/* Top bar */}
         <div className="h-12 flex items-center justify-between px-4 border-b border-cyber-border bg-cyber-dark/80 backdrop-blur-sm z-10">
           <div className="flex items-center gap-3">
-            <Shield size={16} className="text-cyber-cyan" />
+            <img
+              src="/photo_2026-05-04_13-46-20.jpg"
+              alt="Zhétikal"
+              className="h-8 w-8 rounded-full object-cover object-top mix-blend-lighten"
+              style={{ filter: 'brightness(1.1) contrast(1.1)' }}
+            />
             <span className="text-sm font-semibold text-cyber-text">
               {activeCase?.name || 'No Case'}
             </span>
