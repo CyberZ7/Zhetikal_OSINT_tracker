@@ -323,8 +323,6 @@ export default function App() {
             edgeTypes={edgeTypes}
             deleteKeyCode={null}
             fitView
-            snapToGrid
-            snapGrid={[16, 16]}
             defaultEdgeOptions={{
               type: 'custom',
               animated: false,

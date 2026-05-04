@@ -1,9 +1,37 @@
 import { useState } from 'react';
 import {
-  getStraightPath,
   EdgeLabelRenderer,
   type EdgeProps,
 } from '@xyflow/react';
+
+function getOrthogonalPath(
+  sourceX: number,
+  sourceY: number,
+  targetX: number,
+  targetY: number
+): [string, number, number] {
+  const dx = Math.abs(targetX - sourceX);
+  const dy = Math.abs(targetY - sourceY);
+
+  let path: string;
+  let midX: number;
+  let midY: number;
+
+  if (dx <= 10 || dy <= 10) {
+    // Nearly straight — draw a straight line
+    path = `M ${sourceX} ${sourceY} L ${targetX} ${targetY}`;
+    midX = (sourceX + targetX) / 2;
+    midY = (sourceY + targetY) / 2;
+  } else {
+    // Route via a single horizontal then vertical segment (L-shape at 90°)
+    const midXVal = (sourceX + targetX) / 2;
+    path = `M ${sourceX} ${sourceY} L ${midXVal} ${sourceY} L ${midXVal} ${targetY} L ${targetX} ${targetY}`;
+    midX = midXVal;
+    midY = (sourceY + targetY) / 2;
+  }
+
+  return [path, midX, midY];
+}
 
 export default function CustomEdge({
   id,
@@ -16,12 +44,7 @@ export default function CustomEdge({
 }: EdgeProps) {
   const [hovered, setHovered] = useState(false);
 
-  const [edgePath, labelX, labelY] = getStraightPath({
-    sourceX,
-    sourceY,
-    targetX,
-    targetY,
-  });
+  const [edgePath, labelX, labelY] = getOrthogonalPath(sourceX, sourceY, targetX, targetY);
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
