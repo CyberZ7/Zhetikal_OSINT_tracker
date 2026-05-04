@@ -191,12 +191,12 @@ export default function App() {
 
       <div className="flex-1 flex flex-col relative">
         {/* Top bar */}
-        <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-cyber-border bg-cyber-dark/80 backdrop-blur-sm z-10">
+        <div className="h-[60px] flex items-center justify-between px-4 border-b border-cyber-border bg-cyber-dark/80 backdrop-blur-sm z-10">
           <div className="flex items-center gap-3">
             <img
               src="/photo_2026-05-04_13-46-20.jpg"
               alt="Zhétikal"
-              className="h-10 w-10 rounded-full object-cover object-center mix-blend-lighten flex-shrink-0"
+              className="h-9 w-9 rounded-full object-cover object-center mix-blend-lighten flex-shrink-0"
               style={{ filter: 'brightness(1.15) contrast(1.1)' }}
             />
             <div className="flex items-center gap-2">

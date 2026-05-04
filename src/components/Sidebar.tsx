@@ -100,7 +100,7 @@ export default function Sidebar({
       {!collapsed && (
         <div className="flex flex-col h-full overflow-hidden">
           {/* Header */}
-          <div className="px-4 pt-4 pb-3 border-b border-cyber-border">
+          <div className="h-[60px] flex items-center px-4 border-b border-cyber-border">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-cyber-cyan/10 border border-cyber-cyan/30 flex items-center justify-center">
                 <FolderOpen size={16} className="text-cyber-cyan" />
