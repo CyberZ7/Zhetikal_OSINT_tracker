@@ -11,6 +11,8 @@ const ICON_MAP: Record<string, React.ElementType> = {
   FileText, Link, Bitcoin, StickyNote,
 };
 
+const TECH_TYPES = ['ip', 'domain', 'url', 'email', 'crypto', 'phone'];
+
 const TYPE_LABELS: Record<string, string> = {
   ip: 'IP',
   domain: 'DOMAIN',
@@ -128,10 +130,10 @@ export default memo(function EntityNode({ id, data, selected }: EntityNodeProps)
             value={label}
             onChange={(e) => setLabel(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="flex-1 bg-cyber-dark border border-cyber-border rounded px-2 py-0.5 text-sm font-semibold text-cyber-text outline-none focus:border-cyber-cyan"
+            className="flex-1 bg-cyber-dark border border-cyber-border rounded px-2 py-0.5 text-sm font-semibold text-cyber-text outline-none focus:border-cyber-cyan font-tech"
           />
         ) : (
-          <span className="flex-1 text-sm font-semibold text-cyber-text truncate">
+          <span className={`flex-1 text-sm font-semibold text-cyber-text truncate ${TECH_TYPES.includes(data.entityType) ? 'font-tech' : ''}`}>
             {data.label}
           </span>
         )}

@@ -245,23 +245,43 @@ export default function Sidebar({
 
                 {/* Entity type grid */}
                 <div className="grid grid-cols-2 gap-1">
-                  {filteredTypes.map((type) => (
-                    <button
-                      key={type}
-                      onClick={() => handleAddEntity(type)}
-                      className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[10px] font-medium border transition-all ${
-                        selectedType === type
-                          ? 'border-cyber-cyan/40 bg-cyber-cyan/10 text-cyber-cyan'
-                          : 'border-cyber-border bg-cyber-panel/50 text-cyber-text-dim hover:border-cyber-border hover:bg-cyber-panel hover:text-cyber-text'
-                      }`}
-                    >
-                      <span
-                        className="w-2 h-2 rounded-full shrink-0"
-                        style={{ background: ENTITY_COLORS[type] }}
-                      />
-                      {ENTITY_LABELS[type]}
-                    </button>
-                  ))}
+                  {filteredTypes.map((type) => {
+                    const color = ENTITY_COLORS[type];
+                    const isSelected = selectedType === type;
+                    return (
+                      <button
+                        key={type}
+                        onClick={() => handleAddEntity(type)}
+                        className="entity-btn flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[10px] font-medium border transition-all"
+                        style={{
+                          background: isSelected ? `${color}18` : 'rgba(17,24,39,0.5)',
+                          borderColor: isSelected ? `${color}70` : `${color}30`,
+                          color: isSelected ? color : 'var(--cyber-text-dim)',
+                          ['--glow-color' as string]: color,
+                        }}
+                        onMouseEnter={(e) => {
+                          const el = e.currentTarget;
+                          el.style.background = `${color}18`;
+                          el.style.borderColor = `${color}70`;
+                          el.style.color = color;
+                          el.style.boxShadow = `0 0 8px ${color}40, inset 0 0 8px ${color}0a`;
+                        }}
+                        onMouseLeave={(e) => {
+                          const el = e.currentTarget;
+                          el.style.background = isSelected ? `${color}18` : 'rgba(17,24,39,0.5)';
+                          el.style.borderColor = isSelected ? `${color}70` : `${color}30`;
+                          el.style.color = isSelected ? color : 'var(--cyber-text-dim)';
+                          el.style.boxShadow = '';
+                        }}
+                      >
+                        <span
+                          className="w-2 h-2 rounded-full shrink-0"
+                          style={{ background: color }}
+                        />
+                        {ENTITY_LABELS[type]}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}

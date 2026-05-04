@@ -263,7 +263,7 @@ export default function App() {
         )}
 
         {/* React Flow canvas */}
-        <div className="flex-1">
+        <div className="flex-1 react-flow-canvas-wrapper">
           <ReactFlow
             nodes={nodes}
             edges={edges}

@@ -9,6 +9,7 @@
   --cyber-dark: #0d1321;
   --cyber-panel: #111827;
   --cyber-border: #1e3a5f;
+  --cyber-border-subtle: #2d2d2d;
   --cyber-cyan: #00f0ff;
   --cyber-cyan-dim: #00c8d4;
   --cyber-blue: #0ea5e9;
@@ -33,6 +34,17 @@ body {
   overflow: hidden;
 }
 
+/* Global border-radius consistency */
+button, input, textarea, select {
+  border-radius: 8px;
+}
+
+/* Monospace utility for technical data */
+.font-tech {
+  font-family: 'JetBrains Mono', 'Roboto Mono', monospace;
+  letter-spacing: -0.01em;
+}
+
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -48,6 +60,13 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--cyber-cyan-dim);
+}
+
+/* ReactFlow canvas wrapper — subtle inner shadow for depth */
+.react-flow-canvas-wrapper {
+  border: 1px solid var(--cyber-border-subtle);
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.6), inset 0 0 80px rgba(0, 0, 0, 0.3);
+  border-radius: 0;
 }
 
 .react-flow__background {
@@ -134,4 +153,13 @@ body {
 
 .node-glow {
   animation: pulse-glow 3s ease-in-out infinite;
+}
+
+/* Entity button glow effects on hover */
+.entity-btn {
+  transition: all 0.2s ease;
+}
+
+.entity-btn:hover {
+  filter: brightness(1.15);
 }
