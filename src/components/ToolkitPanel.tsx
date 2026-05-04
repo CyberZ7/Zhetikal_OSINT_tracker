@@ -69,25 +69,25 @@ export default function ToolkitPanel({ isOpen, onClose }: ToolkitPanelProps) {
       }`}
       style={{ top: 60, bottom: 28 }}
     >
-      <div className="flex items-center justify-between px-5 py-4 border-b border-cyber-border">
-        <div>
+      <div className="relative flex items-center px-5 py-4 border-b border-cyber-border">
+        <div className="flex-1">
           <h2 className="text-sm font-bold text-cyber-text">Ghostint-Tools</h2>
           <p className="text-[10px] text-cyber-text-dim mt-0.5">OSINT toolkit reference</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="absolute left-1/2 -translate-x-1/2">
           <img
-            src="/image.png"
+            src="/photo_2026-05-04_13-46-20.jpg"
             alt="Zhétikal"
-            className="h-8 w-8 rounded-full object-cover object-center mix-blend-lighten flex-shrink-0"
-            style={{ filter: 'brightness(1.1) contrast(1.1)' }}
+            className="h-10 w-10 rounded-full object-cover object-center mix-blend-lighten"
+            style={{ filter: 'brightness(1.15) contrast(1.1)' }}
           />
-          <button
-            onClick={onClose}
-            className="w-7 h-7 rounded-lg flex items-center justify-center text-cyber-text-dim hover:text-cyber-text hover:bg-cyber-panel transition-colors"
-          >
-            <X size={14} />
-          </button>
         </div>
+        <button
+          onClick={onClose}
+          className="w-7 h-7 rounded-lg flex items-center justify-center text-cyber-text-dim hover:text-cyber-text hover:bg-cyber-panel transition-colors"
+        >
+          <X size={14} />
+        </button>
       </div>
 
       <div className="px-4 py-3 space-y-2.5 border-b border-cyber-border">
